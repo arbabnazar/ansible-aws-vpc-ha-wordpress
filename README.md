@@ -1,5 +1,6 @@
 Ansible AWS VPC Highly-Available Wordpress
 ----------------------
+There's a blog post that I wrote to go along with this. [Check it out!]
 
 The purpose of Ansible AWS VPC Highly-Available Wordpress(AAVHAW) is to create a fully operational AWS VPC infrastructure(subnets,routeing tables,igw etc), it will also create everything that need to be for creating EC2 and RDS instances (security key, security group, subnet group).
 
@@ -7,7 +8,7 @@ It will also create the Elastic Load Balancer and add the EC2 instance(s) automa
 
 Beside that, this playbook will also run the essential role(updating and patching the OS, configuring NTP,creating users etc) and deploy the wordpress on them, that will be fault tolerant and highly available.
 
-**NOTE:** The part of the play, 'webserver.yaml', is not idempotent. Every time it is run, it will create a new EC2 instances.
+**NOTE:** The part of the play, 'webserver.yml', is not idempotent. Every time it is run, it will create a new EC2 instances.
 
 ### AAVHAW Playbook Tasks:
 
@@ -108,3 +109,4 @@ ansible-playbook -i hosts site.yml
 Please refer this AWS Region Chart for help
 
 ![Please refer this AWS Region Chart](http://s14.postimg.org/my8ap29sh/AWSRegions.jpg)
+[Check it out!]:https://rbgeek.wordpress.com/2015/08/03/highly-available-wordpress-installation-inside-aws-vpc-using-ansible/
