@@ -1,0 +1,4 @@
+---
+ ENV: testing
+ application: wordpress
+ server_role: webserver

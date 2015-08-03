@@ -1,0 +1,95 @@
+---
+
+ - name: WebServer | Create WEB Security Group
+   local_action:
+     module: ec2_group
+     name: "{{ item.sg_name }}"
+     description: "{{ item.sg_description }}"
+     region: "{{ vpc_region }}" # Change the AWS region here
+     vpc_id: "{{ vpc.vpc_id }}" # vpc is the resgister name, you can also set it manually
+     state: present
+     rules: "{{ item.sg_rules }}"
+   with_items: web_security_groups
+   register: web_sg
+
+ - name: WebServer | Tag the WEB Security Group with a name
+   local_action:
+     module: ec2_tag
+     resource: "{{ item.group_id}}"
+     region: "{{ vpc_region }}"
+     state: present
+     tags:
+       Name: "{{ vpc_name }}-{{ item.item.sg_name }}"
+   with_items: web_sg.results
+ 
+ - name: WebServer | Search for Ubuntu AMI
+   ec2_ami_search:
+     region: "{{ vpc_region|default('us-east-1') }}"
+     distro: "{{ linux_distribution }}"
+     release: "{{ ubuntu_release }}"
+     store: "{{ ami_store }}"
+     virt: "{{ virutalization_type }}"
+     arch: "{{ cpu_architecture }}"
+   register: imgae_id
+ 
+ - name: WebServer | Create the WebServer Instance(s)
+   local_action:
+     module: ec2
+     region: "{{ vpc_region }}"
+     group: "{{ web_security_groups[0].sg_name }}"
+     keypair: "{{ key_name }}"
+     instance_type: "{{ web_instance_type }}"
+     image: "{{ imgae_id.ami }}"
+     vpc_subnet_id: "{{ item }}"
+     assign_public_ip: True
+     wait: True
+     wait_timeout: 600
+     user_data: |
+               #!/bin/sh
+               sudo apt-get install nginx -y
+     instance_tags:
+       Name: "{{ vpc_name }}_WEB_Instance"
+       Environment: "{{ ENV }}"
+       Role: "{{ server_role }}"
+       Application: "{{ application }}"
+   with_items:
+      - "{{ public_subnet_1 }}"
+      - "{{ public_subnet_2 }}"
+   register: web
+
+ - name: WebServer | Set the Instances facts
+   set_fact:
+     instance_public_ip_1: "{{ web.results[0].instances[0].public_ip }}"
+     instance_id_1: "{{ web.results[0].instances[0].id }}"
+     instance_public_ip_2: "{{ web.results[1].instances[0].public_ip }}"
+     instance_id_2: "{{ web.results[1].instances[0].id }}"
+
+ - name: WebServer | Add the newly created EC2 instance(s) to the local host group (located inside the directory)
+   local_action: 
+     module: lineinfile 
+     dest: "./hosts" 
+     regexp: "{{ item }}" 
+     insertafter: "[webserver]" 
+     line: "{{ item }}"
+   with_items:
+      - "{{ instance_public_ip_1 }}"
+      - "{{ instance_public_ip_2 }}" 
+
+ - name: WebServer | Wait for SSH to come up
+   local_action: 
+     module: wait_for 
+     host: "{{ item }}" 
+     port: 22 
+     state: started
+   with_items: 
+     - "{{ instance_public_ip_1 }}"
+     - "{{ instance_public_ip_2 }}" 
+
+ - name: Create SSH Group to login dynamically to EC2 Instance(s)
+   add_host: 
+     hostname: "{{ item }}"
+     groupname: webserver
+   with_items: 
+     - "{{ instance_public_ip_1 }}"
+     - "{{ instance_public_ip_2 }}" 
+

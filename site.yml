@@ -1,0 +1,32 @@
+---
+ - hosts: local
+   connection: local
+   gather_facts: no
+   vars_files:
+     - aws/vars/tags.yml	
+     - aws/vars/vpc.yml
+     - aws/vars/ec2_key.yml
+     - aws/vars/rds.yml
+     - aws/vars/webserver.yml
+     - aws/vars/elb.yml
+     - aws/vars/route53.yml
+   tasks:
+     - include: aws/tasks/vpc.yml
+     - include: aws/tasks/ec2_key.yml
+     - include: aws/tasks/webserver.yml
+     - include: aws/tasks/rds.yml
+     - include: aws/tasks/elb.yml
+     - include: aws/tasks/route53.yml
+
+ - hosts: webserver
+   sudo: True 
+   remote_user: ubuntu
+   gather_facts: True
+   pre_tasks:
+     - include_vars: rds_info.yml
+   roles:
+     - common
+     - wordpress
+
+
+     

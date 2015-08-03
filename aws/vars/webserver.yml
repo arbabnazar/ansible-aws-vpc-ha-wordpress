@@ -1,0 +1,26 @@
+---
+ web_instance_type: t2.micro
+
+ web_security_groups:
+   - sg_name: web-sg
+     sg_description: This sg is for app instance
+     sg_rules:
+       - proto: tcp
+         from_port: 22
+         to_port: 22
+         cidr_ip: 0.0.0.0/0
+       - proto: tcp
+         from_port: 80
+         to_port: 80
+         cidr_ip: 0.0.0.0/0
+         
+ # Please don't change the variables below, until you know what you are doing
+ # Only Ubuntu distribution is supported
+  
+ linux_distribution: ubuntu
+ ubuntu_release: trusty
+ ami_store: ebs
+ virutalization_type: hvm
+ cpu_architecture: amd64
+
+ 

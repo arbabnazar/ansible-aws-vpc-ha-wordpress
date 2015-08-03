@@ -1,0 +1,8 @@
+---
+ #- include_vars: rds_info.yml
+ - include: nginx.yml
+ - include: php5.yml
+ - include: deploy.yml
+ 
+
+ 
