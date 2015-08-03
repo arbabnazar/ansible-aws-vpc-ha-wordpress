@@ -1,0 +1,30 @@
+---
+ - name: Install the Nginx Repository 
+   apt_repository: repo='ppa:nginx/stable' state=present
+   register: ppainstalled
+ 
+ - name: Update the Repositories 
+   apt: update_cache=true
+ 
+ - name: Install Nginx
+   apt: pkg=nginx state=installed update_cache=true
+   when: ppainstalled|success
+   register: nginxinstalled
+   notify:
+     - Restart Nginx
+ 
+ - name: Write the modified nginx.conf
+   when: nginxinstalled|success 
+   template: src=nginx.conf.j2 dest=/etc/nginx/nginx.conf backup=yes
+   notify:
+     - Restart Nginx  
+
+ - name: Disable Default Nginx Site
+   file: dest=/etc/nginx/sites-enabled/default state=absent
+   notify:
+     - Restart Nginx
+ 
+ - name: Delete the Default index page in Nginx
+   when: nginxinstalled|success
+   file: dest=/var/www/html/index.nginx-debian.html state=absent
+ 

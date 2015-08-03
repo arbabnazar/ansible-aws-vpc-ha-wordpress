@@ -1,0 +1,74 @@
+---
+
+ - name: RDS | Create RDS Security Group
+   local_action:
+     module: ec2_group
+     name: "{{ item.sg_name }}"
+     description: "{{ item.sg_description }}"
+     region: "{{ vpc_region }}" # Change the AWS region here
+     vpc_id: "{{ vpc.vpc_id }}" # vpc is the resgister name, you can also set it manually
+     state: present
+     rules: "{{ item.sg_rules }}"
+   with_items: rds_security_groups
+   register: rds_sg
+
+ - name: RDS | Tag the RDS Security Group with a name
+   local_action:
+     module: ec2_tag
+     resource: "{{ item.group_id}}"
+     region: "{{ vpc_region }}"
+     state: present
+     tags:
+       Name: "{{ vpc_name }}-{{ item.item.sg_name }}"
+   with_items: rds_sg.results
+
+ - name: RDS | Set the RDS Security Group id as facts
+   set_fact:
+     rds_security_group: "{{ item.group_id}}"
+   with_items: rds_sg.results
+
+ - name: RDS | Create RDS Subnet Group
+   local_action:
+     module: rds_subnet_group
+     region: "{{ vpc_region }}"
+     state: present
+     name: "{{ rds_subnet_group }}"
+     description: "{{ rds_sg_description }}"
+     subnets:
+       "{{ vpc.subnets | map(attribute='id') | list }}"
+ 
+ - name: RDS | Provisioning RDS Instance
+   local_action:
+     module: rds
+     command: create
+     region: "{{ vpc_region }}"
+     multi_zone: "{{ multi_zone_option }}"
+     subnet: "{{ rds_subnet_group }}"
+     vpc_security_groups: "{{ rds_security_group }}" 
+     instance_name: "{{ rds_instance_name }}"
+     db_engine: "{{ rds_db_engine }}"
+     size: "{{ rds_db_size }}"
+     db_name: "{{ rds_db_name }}"
+     instance_type: "{{ rds_instance_type }}"
+     username: "{{ rds_db_username }}"
+     password: "{{ rds_db_password }}"
+     backup_retention: "{{ backup_retention_period }}"
+     wait: yes
+     wait_timeout: 600
+     tags:
+       Environment: "{{ ENV }}"
+       Application: "{{ application }}"
+   register: rds
+
+ - name: RDS | Write the RDS facts/values to the file rds_info.yml inside the project directory
+   shell: |
+     echo "db_hostname: {{ rds.instance.endpoint }}" > rds_info.yml
+     echo "db_name: {{ rds_db_name }}" >> rds_info.yml
+     echo "db_username: {{ rds_db_username }}" >> rds_info.yml
+     echo "db_password: {{ rds_db_password }}" >> rds_info.yml
+     
+     
+     
+     
+
+

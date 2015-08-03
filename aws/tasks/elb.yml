@@ -1,0 +1,66 @@
+---
+
+ - name: ELB | Create ELB Security Group
+   local_action:
+     module: ec2_group
+     name: "{{ item.sg_name }}"
+     description: "{{ item.sg_description }}"
+     region: "{{ vpc_region }}" # Change the AWS region here
+     vpc_id: "{{ vpc.vpc_id }}" # vpc is the resgister name, you can also set it manually
+     state: present
+     rules: "{{ item.sg_rules }}"
+   with_items: elb_security_groups
+   register: elb_sg
+
+ - name: ELB | Tag the ELB Security Group with a name
+   local_action:
+     module: ec2_tag
+     resource: "{{ item.group_id}}"
+     region: "{{ vpc_region }}"
+     state: present
+     tags:
+       Name: "{{ vpc_name }}-{{ item.item.sg_name }}"
+   with_items: elb_sg.results
+
+ - name: ELB | Set the ELB Security Group id as facts
+   set_fact:
+     elb_security_group: "{{ item.group_id}}"
+   with_items: elb_sg.results
+
+ - name: ELB | Ensure load balancer exists
+   local_action:
+     module: ec2_elb_lb
+     name: "{{ load_balancer_name }}"
+     security_group_ids: "{{ elb_security_group }}"
+     state: present
+     region: "{{ vpc_region }}"
+     subnets: 
+       - "{{ public_subnet_1 }}"
+       - "{{ public_subnet_2 }}"
+     purge_subnets: "{{ elb_purge_subnets }}"
+     cross_az_load_balancing: "{{ elb_cross_az_load_balancing }}"
+     connection_draining_timeout: "{{ elb_connection_draining_timeout }}"
+     listeners:
+       - protocol: http
+         load_balancer_port: 80
+         instance_protocol: http
+         instance_port: 80
+     health_check:
+       ping_protocol: "{{ elb_ping_protocol }}"
+       ping_port: "{{ elb_ping_port }}"
+       response_timeout: "{{ elb_response_timeout }}"
+       interval: "{{ elb_interval }}"
+       unhealthy_threshold: "{{ elb_unhealthy_threshold }}"
+       healthy_threshold: "{{ elb_healthy_threshold }}"
+   register: web_elb
+
+ - name: ELB | Adding EC2 instance(s) to the ELB
+   local_action:
+     module: ec2_elb
+     region: "{{ vpc_region }}"
+     ec2_elbs: "{{ load_balancer_name }}"
+     instance_id: "{{ item }}"
+     state: present
+   with_items: 
+     - "{{ instance_id_1 }}"
+     - "{{ instance_id_2 }}"

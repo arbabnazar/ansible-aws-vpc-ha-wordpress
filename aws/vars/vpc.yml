@@ -1,0 +1,36 @@
+---
+ # Variables for VPC
+ vpc_name: tendo
+ vpc_region: eu-west-1 # Ireland
+ vpc_cidr_block: 172.25.0.0/16
+ public_cidr_1: 172.25.10.0/24
+ public_az_1: "{{ vpc_region }}a"
+ public_cidr_2: 172.25.20.0/24
+ public_az_2: "{{ vpc_region }}b"
+ private_cidr: 172.25.30.0/24
+ private_az: "{{ vpc_region }}c"
+
+ # Please don't change the variables below, until you know what you are doing
+ #
+ # Subnets Defination for VPC
+ vpc_subnets:
+   - cidr: "{{ public_cidr_1 }}" # Public Subnet-1
+     az: "{{ public_az_1 }}"
+     resource_tags: { "Name":"{{ vpc_name }}-{{ public_az_1 }}-public-subnet" }
+   - cidr: "{{ public_cidr_2 }}" # Public Subnet-2
+     az: "{{ public_az_2 }}"
+     resource_tags: { "Name":"{{ vpc_name }}-{{ public_az_2 }}-public-subnet" }
+   - cidr: "{{ private_cidr }}" # Private Subnet
+     az: "{{ private_az }}"
+     resource_tags: { "Name":"{{ vpc_name }}-{{ private_az }}-private-subnet" }
+
+ # Route table(s) for Subnets inside the VPC
+ #
+ # Routing Table for Public Subnet
+ public_subnet_rt:
+   - subnets:
+       - "{{ public_cidr_1 }}"
+       - "{{ public_cidr_2 }}"
+     routes:
+       - dest: 0.0.0.0/0
+         gw: igw

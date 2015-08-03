@@ -1,0 +1,19 @@
+---
+ load_balancer_name: "{{ vpc_name }}-{{ ENV }}-{{ server_role }}-ELB"
+ elb_purge_subnets: yes
+ elb_cross_az_load_balancing: yes
+ elb_ping_protocol: tcp
+ elb_ping_port: 80
+ elb_response_timeout: 5
+ elb_interval: 30
+ elb_unhealthy_threshold: 2
+ elb_healthy_threshold: 10
+ elb_connection_draining_timeout: 60 
+ elb_security_groups:
+   - sg_name: "{{ load_balancer_name }}-sg"
+     sg_description: "This sg is for {{ load_balancer_name }}"
+     sg_rules:
+       - proto: tcp
+         from_port: 80
+         to_port: 80
+         cidr_ip: 0.0.0.0/0
