@@ -1,0 +1,21 @@
+---
+ multi_zone_option: no
+ rds_instance_name: mydb
+ rds_db_engine: MySQL
+ rds_db_size: 5
+ rds_db_name: wordpress
+ rds_instance_type: db.t2.micro
+ rds_db_username: wordpress
+ rds_db_password: wordpress
+ rds_subnet_group: my_subnet_group
+ rds_sg_description: My Subnet Group for wordpress rds instance
+ backup_retention_period: 0
+ # RDS Security Group(s) variables
+ rds_security_groups:
+   - sg_name: db-sg
+     sg_description: This sg is for db/rds instance
+     sg_rules:
+       - proto: tcp
+         from_port: 3306
+         to_port: 3306
+         group_name: "{{ web_security_groups[0].sg_name }}"

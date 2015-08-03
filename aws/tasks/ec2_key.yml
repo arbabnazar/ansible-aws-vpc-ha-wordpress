@@ -1,0 +1,25 @@
+---
+ - name: Find the current login user
+   command: whoami
+   register: login_user
+
+ - name: Check that the SSH Key exists
+   local_action:
+     module: stat
+     path: "{{ ssh_key_location }}"
+   register: sshkey_result
+
+ - name: Generating a new SSH key for the current user it's not exists already
+   local_action:
+      module: user
+      name: "{{ login_user.stdout }}"
+      generate_ssh_key: yes 
+      ssh_key_bits: 2048
+   when: sshkey_result.stat.exists == False
+
+ - name: EC2Key | Creates an new ec2 key with mentioned name if not present
+   local_action:
+     module: ec2_key
+     region: "{{ vpc_region }}"
+     name: "{{ key_name }}"
+     key_material:  "{{ lookup('file',  ssh_key_location ) }}"  

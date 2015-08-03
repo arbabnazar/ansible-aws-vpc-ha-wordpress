@@ -1,0 +1,46 @@
+--- 
+ - name: Delete the html directory
+   file: path=/var/www/html state=absent recurse=no
+   ignore_errors: True
+
+ - name: "Check that {{ wordpress_dir }} exist"
+   command: /usr/bin/test -e {{ wordpress_dir }}
+   register: dir_exists
+   ignore_errors: True
+
+ - name: Create wordpress directory at {{ wordpress_dir }}
+   when: dir_exists.rc != 0
+   file: state=directory path={{ wordpress_dir }} owner=www-data group=www-data mode=0755 recurse=yes
+
+ - name: Download the latest wordpress
+   get_url: url={{ wordpress_url }} dest={{ wordpress_dir }}/latest.tar.gz
+ 
+ - name: Unzip the downloaded wordpress zipped file
+   unarchive: src={{ wordpress_dir }}/latest.tar.gz dest={{ wordpress_dir }} copy=no
+
+ - name: Rename the extracted wordpress directory as Website name
+   command: mv {{ wordpress_dir }}/wordpress {{ wordpress_dir }}/{{ website_name }}
+   register: dir_rename
+
+ - name: Copy the "wp-config.php" file inside the {{ website_name }} directory
+   when: dir_rename|success
+   template: src=wp-config.php.j2 dest={{ wordpress_dir }}/{{ website_name }}/wp-config.php
+ 
+ - name: Reset the permission on Website directory
+   file: state=directory path={{ wordpress_dir }}/{{ website_name }} owner=www-data group=www-data recurse=yes
+ 
+ - name: Disable the Test Nginx Site
+   file: dest=/etc/nginx/sites-enabled/test_site state=absent
+   ignore_errors: True
+   notify:
+     - Restart Nginx
+
+ - name: Add the "{{ website_name }}" config
+   template: src=virtualhost.conf.j2 dest=/etc/nginx/sites-available/{{ website_name }} owner=root group=root
+   notify:
+     - Restart Nginx
+
+ - name: Enable "{{ website_name }}" Site Config
+   file: src=/etc/nginx/sites-available/{{ website_name }} dest=/etc/nginx/sites-enabled/{{ website_name }} state=link
+   notify:
+     - Restart Nginx

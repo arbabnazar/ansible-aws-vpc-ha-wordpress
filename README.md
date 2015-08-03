@@ -5,7 +5,7 @@ The purpose of Ansible AWS VPC Highly-Available Wordpress(AAVHAW) is to create a
 
 It will also create the Elastic Load Balancer and add the EC2 instance(s) automatically that were created using this playbook as well as creating the Route53 entry for this site and add the ELB alias to it. 
 
-Beside that, this playbook will also run the essential role(updating and patching the OS, configuring NTP etc) and deploy the wordpress on them.
+Beside that, this playbook will also run the essential role(updating and patching the OS, configuring NTP,creating users etc) and deploy the wordpress on them, that will be fault tolerant and highly available.
 
 **NOTE:** The part of the play, 'webserver.yaml', is not idempotent. Every time it is run, it will create a new EC2 instances.
 

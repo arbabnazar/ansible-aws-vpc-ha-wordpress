@@ -1,0 +1,11 @@
+---
+
+ - name: Update Route53 Record for WWWW
+   route53:
+     command: create
+     overwrite: yes
+     zone: "{{ domain }}"
+     record: "www.{{ domain }}"
+     type: CNAME
+     ttl: 60
+     value: "{{ web_elb.elb.dns_name }}"
