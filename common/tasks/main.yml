@@ -1,0 +1,88 @@
+---
+ - name: Ensure that the repositories are update
+   apt: 
+     update_cache: yes
+
+ - name: Upgrade the Server
+   apt: 
+     upgrade: safe
+
+ - name: Install all the essential packages
+   apt:
+     name: "{{ ','.join(pkgs_list) }}"
+     state: latest
+ 
+ - name: Copy the "10periodic.j2" to the "/etc/apt/apt.conf.d/"
+   template: 
+     src: 10periodic.j2 
+     dest: /etc/apt/apt.conf.d/10periodic 
+     owner: root 
+     group: root 
+     mode: 0644
+ 
+ - name: Copy the "50unattended-upgrades.j2" to the "/etc/apt/apt.conf.d/"
+   template: 
+     src: 50unattended-upgrades.j2 
+     dest: /etc/apt/apt.conf.d/50unattended-upgrades 
+     owner: root 
+     group: root 
+     mode: 0644
+ 
+ - name: Check the Current Timezone
+   command: cat /etc/timezone
+   register: current_timezone
+
+ - name: Set the provided Timezone
+   copy: 
+     content: "{{ timezone }}" 
+     dest: /etc/timezone 
+     owner: root 
+     group: root 
+     mode: 0644 
+     backup: yes
+   when: current_timezone.stdout != "{{ timezone }}"
+   register: set_timezone
+
+ - name: Update Timezone
+   command: dpkg-reconfigure --frontend noninteractive tzdata
+   when: set_timezone.changed
+
+ - name: Adding Linx User
+   user: 
+     name: "{{ item.username }}" 
+     comment: "{{ item.username }}@github"
+     shell: /bin/bash
+     state: "{{ item.state | default('present') }}"
+   with_items:
+     users_list
+
+ - name: Create .ssh directory
+   file: 
+     path: /home/{{ item.username }}/.ssh 
+     state: directory 
+     owner: "{{ item.username }}"
+     group: "{{ item.username }}"
+     mode: 0700
+   when: item.get('state', 'present') == 'present'
+   with_items:
+     users_list
+
+ - name: Assign sudo role to the admin users
+   copy: 
+     content: "{{ item.username }} ALL=(ALL) NOPASSWD:ALL" 
+     dest: /etc/sudoers.d/99-{{ item.username }}
+   when: item.type is defined and item.type == 'admin' and item.get('state', 'present') == 'present'
+   with_items:
+     users_list
+
+ - name: Adding GitHub SSH Key
+   get_url:
+     url: https://github.com/{{ item.github_username }}.keys 
+     dest: /home/{{ item.username }}/.ssh/authorized_keys 
+     owner: "{{ item.username }}"
+     group: "{{ item.username }}"
+     mode: 0600
+   when: item.get('state', 'present') == 'present'
+   with_items:
+     users_list 
+
