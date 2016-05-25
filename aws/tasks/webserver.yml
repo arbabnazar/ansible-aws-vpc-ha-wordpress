@@ -28,7 +28,7 @@
      distro: "{{ linux_distribution }}"
      release: "{{ ubuntu_release }}"
      store: "{{ ami_store }}"
-     virt: "{{ virutalization_type }}"
+     virt: "{{ virtualization_type }}"
      arch: "{{ cpu_architecture }}"
    register: imgae_id
  
