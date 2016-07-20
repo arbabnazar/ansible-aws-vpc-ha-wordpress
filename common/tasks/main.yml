@@ -53,8 +53,7 @@
      comment: "{{ item.username }}@github"
      shell: /bin/bash
      state: "{{ item.state | default('present') }}"
-   with_items:
-     users_list
+   with_items: "{{ users_list }}"
 
  - name: Create .ssh directory
    file: 
@@ -64,16 +63,14 @@
      group: "{{ item.username }}"
      mode: 0700
    when: item.get('state', 'present') == 'present'
-   with_items:
-     users_list
+   with_items: "{{ users_list }}"
 
  - name: Assign sudo role to the admin users
    copy: 
      content: "{{ item.username }} ALL=(ALL) NOPASSWD:ALL" 
      dest: /etc/sudoers.d/99-{{ item.username }}
    when: item.type is defined and item.type == 'admin' and item.get('state', 'present') == 'present'
-   with_items:
-     users_list
+   with_items: "{{ users_list }}"
 
  - name: Adding GitHub SSH Key
    get_url:
@@ -83,6 +80,4 @@
      group: "{{ item.username }}"
      mode: 0600
    when: item.get('state', 'present') == 'present'
-   with_items:
-     users_list 
-
+   with_items: "{{ users_list }}"

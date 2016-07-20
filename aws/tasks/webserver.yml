@@ -1,5 +1,4 @@
 ---
-
  - name: WebServer | Create WEB Security Group
    local_action:
      module: ec2_group
@@ -9,7 +8,7 @@
      vpc_id: "{{ vpc.vpc_id }}" # vpc is the resgister name, you can also set it manually
      state: present
      rules: "{{ item.sg_rules }}"
-   with_items: web_security_groups
+   with_items: "{{ web_security_groups }}"
    register: web_sg
 
  - name: WebServer | Tag the WEB Security Group with a name
@@ -20,7 +19,7 @@
      state: present
      tags:
        Name: "{{ vpc_name }}-{{ item.item.sg_name }}"
-   with_items: web_sg.results
+   with_items: "{{ web_sg.results }}"
  
  - name: WebServer | Search for Ubuntu AMI
    ec2_ami_search:
@@ -28,7 +27,7 @@
      distro: "{{ linux_distribution }}"
      release: "{{ ubuntu_release }}"
      store: "{{ ami_store }}"
-     virt: "{{ virtualization_type }}"
+     virt: "{{ virutalization_type }}"
      arch: "{{ cpu_architecture }}"
    register: imgae_id
  
@@ -92,4 +91,3 @@
    with_items: 
      - "{{ instance_public_ip_1 }}"
      - "{{ instance_public_ip_2 }}" 
-

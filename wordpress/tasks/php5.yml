@@ -1,14 +1,17 @@
 ---
  - name: Install the PHP5 Repository 
-   apt_repository: repo='ppa:ondrej/php5' state=present
-   register: ppainstalled
+   apt_repository:
+     repo: 'ppa:ondrej/php5'
+     state: present
  
  - name: Update the Repositories 
-   apt: update_cache=yes
+   apt:
+     update_cache: yes
  
  - name: Install PHP5-FPM
-   apt: name={{ item }} state=latest
-   when: ppainstalled|success
+   apt:
+     name: "{{ item }}"
+     state: latest
    with_items:
      - php5-fpm
      - php5-cgi
@@ -25,16 +28,23 @@
      - php5-imap
      - php5-mcrypt
      - php5-mysqlnd
-   register: php5installed
 
  - name: Copy custom www.conf file with the Change in permission of php5-fpm.sock
-   when: php5installed|success
-   copy: src=www.conf dest=/etc/php5/fpm/pool.d owner=root group=root backup=yes
+   copy:
+     src: www.conf
+     dest: /etc/php5/fpm/pool.d
+     owner: root
+     group: root
+     backup: yes
    notify:
      - Restart PHP5-FPM
 
  - name: Copy custom php.ini file(cgi.fix_pathinfo=0) 
-   when: php5installed|success
-   copy: src=php.ini dest=/etc/php5/fpm owner=root group=root backup=yes
+   copy:
+     src: php.ini
+     dest: /etc/php5/fpm
+     owner: root
+     group: root
+     backup: yes
    notify:
      - Restart PHP5-FPM 

@@ -1,5 +1,4 @@
 ---
-
  - name: RDS | Create RDS Security Group
    local_action:
      module: ec2_group
@@ -9,7 +8,7 @@
      vpc_id: "{{ vpc.vpc_id }}" # vpc is the resgister name, you can also set it manually
      state: present
      rules: "{{ item.sg_rules }}"
-   with_items: rds_security_groups
+   with_items: "{{ rds_security_groups }}"
    register: rds_sg
 
  - name: RDS | Tag the RDS Security Group with a name
@@ -20,12 +19,12 @@
      state: present
      tags:
        Name: "{{ vpc_name }}-{{ item.item.sg_name }}"
-   with_items: rds_sg.results
+   with_items: "{{ rds_sg.results }}"
 
  - name: RDS | Set the RDS Security Group id as facts
    set_fact:
      rds_security_group: "{{ item.group_id}}"
-   with_items: rds_sg.results
+   with_items: "{{ rds_sg.results }}"
 
  - name: RDS | Create RDS Subnet Group
    local_action:
@@ -66,9 +65,3 @@
      echo "db_name: {{ rds_db_name }}" >> rds_info.yml
      echo "db_username: {{ rds_db_username }}" >> rds_info.yml
      echo "db_password: {{ rds_db_password }}" >> rds_info.yml
-     
-     
-     
-     
-
-

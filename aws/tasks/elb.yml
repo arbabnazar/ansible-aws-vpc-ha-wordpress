@@ -1,5 +1,4 @@
 ---
-
  - name: ELB | Create ELB Security Group
    local_action:
      module: ec2_group
@@ -20,12 +19,12 @@
      state: present
      tags:
        Name: "{{ vpc_name }}-{{ item.item.sg_name }}"
-   with_items: elb_sg.results
+   with_items: "{{ elb_sg.results }}"
 
  - name: ELB | Set the ELB Security Group id as facts
    set_fact:
      elb_security_group: "{{ item.group_id}}"
-   with_items: elb_sg.results
+   with_items: "{{ elb_sg.results }}"
 
  - name: ELB | Ensure load balancer exists
    local_action:

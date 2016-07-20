@@ -20,7 +20,7 @@
  linux_distribution: ubuntu
  ubuntu_release: trusty
  ami_store: ebs
- virtualization_type: hvm
+ virutalization_type: hvm
  cpu_architecture: amd64
 
  
