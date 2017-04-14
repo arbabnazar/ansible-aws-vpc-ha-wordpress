@@ -8,13 +8,13 @@
      vpc_id: "{{ vpc.vpc_id }}" # vpc is the resgister name, you can also set it manually
      state: present
      rules: "{{ item.sg_rules }}"
-   with_items: elb_security_groups
+   with_items: "{{ elb_security_groups }}"
    register: elb_sg
 
  - name: ELB | Tag the ELB Security Group with a name
    local_action:
      module: ec2_tag
-     resource: "{{ item.group_id}}"
+     resource: "{{ item.group_id }}"
      region: "{{ vpc_region }}"
      state: present
      tags:
@@ -23,7 +23,7 @@
 
  - name: ELB | Set the ELB Security Group id as facts
    set_fact:
-     elb_security_group: "{{ item.group_id}}"
+     elb_security_group: "{{ item.group_id }}"
    with_items: "{{ elb_sg.results }}"
 
  - name: ELB | Ensure load balancer exists
