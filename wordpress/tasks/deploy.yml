@@ -29,7 +29,7 @@
  - name: Unzip the downloaded wordpress zipped file
    unarchive:
      src: "{{ wordpress_dir }}/latest.tar.gz"
-     dest: {"{ wordpress_dir }}"
+     dest: "{{ wordpress_dir }}"
      copy: no
 
  - name: Rename the extracted wordpress directory as Website name
